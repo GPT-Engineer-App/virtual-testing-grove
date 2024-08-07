@@ -4,10 +4,11 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Cat, Heart, Info, ChevronUp } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Cat, Heart, Info, ChevronUp, Paw } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
-import { useAutoAnimate } from '@formkit/auto-animate/react';
+import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const Index = () => {
   const [likes, setLikes] = useState(0);
@@ -15,6 +16,7 @@ const Index = () => {
   const [parent] = useAutoAnimate();
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
+  const [isHovering, setIsHovering] = useState(false);
 
   const catImages = [
     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg",
@@ -34,11 +36,11 @@ const Index = () => {
   ];
 
   const catBreeds = [
-    { name: "Siamese", origin: "Thailand", personality: "Vocal and affectionate" },
-    { name: "Persian", origin: "Iran", personality: "Calm and gentle" },
-    { name: "Maine Coon", origin: "United States", personality: "Friendly and playful" },
-    { name: "Bengal", origin: "United States", personality: "Active and curious" },
-    { name: "Scottish Fold", origin: "Scotland", personality: "Sweet-tempered and quiet" },
+    { name: "Siamese", origin: "Thailand", personality: "Vocal and affectionate", funFact: "Known for their blue almond-shaped eyes and color-point coats." },
+    { name: "Persian", origin: "Iran", personality: "Calm and gentle", funFact: "Recognized for their long, luxurious coats and flat faces." },
+    { name: "Maine Coon", origin: "United States", personality: "Friendly and playful", funFact: "One of the largest domestic cat breeds, often called 'gentle giants'." },
+    { name: "Bengal", origin: "United States", personality: "Active and curious", funFact: "Their spotted coats resemble those of wild leopards." },
+    { name: "Scottish Fold", origin: "Scotland", personality: "Sweet-tempered and quiet", funFact: "Famous for their unique folded ears, caused by a natural genetic mutation." },
   ];
 
   useEffect(() => {
@@ -83,6 +85,8 @@ const Index = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}
+                    onHoverStart={() => setIsHovering(true)}
+                    onHoverEnd={() => setIsHovering(false)}
                   >
                     <img 
                       src={image}
@@ -98,10 +102,24 @@ const Index = () => {
                       <Heart className="mr-2 h-5 w-5 inline-block" />
                       <span>{likes}</span>
                     </motion.button>
+                    <AnimatePresence>
+                      {isHovering && (
+                        <motion.div
+                          className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          <p className="text-white text-2xl font-bold">Meow-nificent!</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 </CarouselItem>
               ))}
             </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
           </Carousel>
           
           <Tabs defaultValue="facts" className="mb-12">
@@ -126,8 +144,9 @@ const Index = () => {
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.05 }}
                       >
-                        <Cat className="h-6 w-6 text-purple-600 flex-shrink-0" />
+                        <Paw className="h-6 w-6 text-purple-600 flex-shrink-0" />
                         <span className="text-purple-800 text-lg">{fact}</span>
                       </motion.li>
                     ))}
@@ -148,16 +167,29 @@ const Index = () => {
                     {catBreeds.map((breed, index) => (
                       <motion.li 
                         key={index}
-                        className="bg-pink-100 p-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:scale-105"
+                        className="bg-pink-100 p-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-xl"
                         initial={{ opacity: 0, x: 50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.05 }}
                       >
                         <div className="flex justify-between items-center mb-2">
                           <span className="font-semibold text-xl text-pink-800">{breed.name}</span>
                           <Badge variant="secondary" className="text-sm">Origin: {breed.origin}</Badge>
                         </div>
-                        <p className="text-pink-700 text-lg">{breed.personality}</p>
+                        <p className="text-pink-700 text-lg mb-2">{breed.personality}</p>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                Fun Fact
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{breed.funFact}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </motion.li>
                     ))}
                   </ul>
@@ -176,6 +208,11 @@ const Index = () => {
       >
         <ChevronUp className="h-6 w-6" />
       </motion.button>
+
+      <motion.div 
+        className="fixed bottom-0 left-0 right-0 h-2 bg-purple-300"
+        style={{ scaleX: scrollYProgress }}
+      />
     </div>
   );
 };
