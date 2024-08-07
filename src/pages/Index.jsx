@@ -1,15 +1,20 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Cat, Heart, Info, ChevronLeft, ChevronRight } from "lucide-react";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Cat, Heart, Info, ChevronUp } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 
 const Index = () => {
   const [likes, setLikes] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [parent] = useAutoAnimate();
+  const { scrollYProgress } = useScroll();
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
   const catImages = [
     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg",
@@ -43,104 +48,134 @@ const Index = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div className="min-h-screen p-8 bg-gradient-to-r from-purple-200 to-pink-200">
-      <motion.h1 
-        className="text-6xl font-bold mb-8 text-center text-purple-800"
-        initial={{ opacity: 0, y: -50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        Feline Fascination
-      </motion.h1>
-      
-      <div className="max-w-4xl mx-auto">
-        <Carousel className="mb-8">
-          <CarouselContent>
-            {catImages.map((image, index) => (
-              <CarouselItem key={index}>
-                <motion.div
-                  className="relative"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <img 
-                    src={image}
-                    alt={`Cute cat ${index + 1}`}
-                    className="mx-auto object-cover w-full h-[400px] rounded-lg shadow-lg"
-                  />
-                  <Button 
-                    className="absolute bottom-4 right-4 bg-red-500 hover:bg-red-600"
-                    onClick={() => setLikes(likes + 1)}
-                  >
-                    <Heart className="mr-2 h-4 w-4" /> Like ({likes})
-                  </Button>
-                </motion.div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
-        </Carousel>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-r from-purple-300 to-pink-300">
+      <motion.div
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: "url('https://upload.wikimedia.org/wikipedia/commons/b/b1/Meandering_cute_cat_paw_prints.png')",
+          backgroundSize: "cover",
+          y: backgroundY,
+        }}
+      />
+      <div className="relative z-10">
+        <motion.h1 
+          className="text-7xl font-bold py-16 text-center text-purple-900 drop-shadow-lg"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Feline Fascination
+        </motion.h1>
         
-        <Tabs defaultValue="facts" className="mb-8">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="facts">Feline Facts</TabsTrigger>
-            <TabsTrigger value="breeds">Cat Breeds</TabsTrigger>
-          </TabsList>
-          <TabsContent value="facts">
-            <Card>
-              <CardHeader>
-                <CardTitle><Info className="inline-block mr-2" />Feline Facts</CardTitle>
-                <CardDescription>Fascinating information about our purr-fect companions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {catFacts.map((fact, index) => (
-                    <motion.li 
-                      key={index}
-                      className="flex items-center space-x-3 bg-purple-100 p-3 rounded-lg"
-                      initial={{ opacity: 0, x: -50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
+        <div className="max-w-4xl mx-auto px-4">
+          <Carousel className="mb-12">
+            <CarouselContent>
+              {catImages.map((image, index) => (
+                <CarouselItem key={index}>
+                  <motion.div
+                    className="relative"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <img 
+                      src={image}
+                      alt={`Cute cat ${index + 1}`}
+                      className="mx-auto object-cover w-full h-[500px] rounded-lg shadow-2xl"
+                    />
+                    <motion.button 
+                      className="absolute bottom-4 right-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full shadow-lg"
+                      onClick={() => setLikes(likes + 1)}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      <Cat className="h-6 w-6 text-purple-600" />
-                      <span className="text-purple-800">{fact}</span>
-                    </motion.li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="breeds">
-            <Card>
-              <CardHeader>
-                <CardTitle><Cat className="inline-block mr-2" />Popular Cat Breeds</CardTitle>
-                <CardDescription>Discover the unique characteristics of various feline friends</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {catBreeds.map((breed, index) => (
-                    <motion.li 
-                      key={index}
-                      className="bg-pink-100 p-4 rounded-lg"
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-semibold text-lg text-pink-800">{breed.name}</span>
-                        <Badge variant="secondary">Origin: {breed.origin}</Badge>
-                      </div>
-                      <p className="text-pink-700">{breed.personality}</p>
-                    </motion.li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                      <Heart className="mr-2 h-5 w-5 inline-block" />
+                      <span>{likes}</span>
+                    </motion.button>
+                  </motion.div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+          
+          <Tabs defaultValue="facts" className="mb-12">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="facts" className="text-lg">Feline Facts</TabsTrigger>
+              <TabsTrigger value="breeds" className="text-lg">Cat Breeds</TabsTrigger>
+            </TabsList>
+            <TabsContent value="facts">
+              <Card className="bg-white/80 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-2xl text-purple-800">
+                    <Info className="mr-2" />Feline Facts
+                  </CardTitle>
+                  <CardDescription className="text-lg">Fascinating information about our purr-fect companions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-4" ref={parent}>
+                    {catFacts.map((fact, index) => (
+                      <motion.li 
+                        key={index}
+                        className="flex items-center space-x-3 bg-purple-100 p-4 rounded-lg shadow-md"
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <Cat className="h-6 w-6 text-purple-600 flex-shrink-0" />
+                        <span className="text-purple-800 text-lg">{fact}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="breeds">
+              <Card className="bg-white/80 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-2xl text-pink-800">
+                    <Cat className="mr-2" />Popular Cat Breeds
+                  </CardTitle>
+                  <CardDescription className="text-lg">Discover the unique characteristics of various feline friends</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-4" ref={parent}>
+                    {catBreeds.map((breed, index) => (
+                      <motion.li 
+                        key={index}
+                        className="bg-pink-100 p-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:scale-105"
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-semibold text-xl text-pink-800">{breed.name}</span>
+                          <Badge variant="secondary" className="text-sm">Origin: {breed.origin}</Badge>
+                        </div>
+                        <p className="text-pink-700 text-lg">{breed.personality}</p>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
+      
+      <motion.button
+        className="fixed bottom-8 right-8 bg-purple-600 text-white p-4 rounded-full shadow-lg z-50"
+        onClick={scrollToTop}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <ChevronUp className="h-6 w-6" />
+      </motion.button>
     </div>
   );
 };
