@@ -4,11 +4,14 @@ import { useAutoAnimate } from '@formkit/auto-animate/react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Cat, Heart, Info, ChevronUp, Paw } from "lucide-react";
+import { Cat, Heart, Info, ChevronUp, Paw, Star } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Index = () => {
   const [likes, setLikes] = useState(0);
@@ -17,6 +20,9 @@ const Index = () => {
   const { scrollYProgress } = useScroll();
   const backgroundY = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
   const [isHovering, setIsHovering] = useState(false);
+  const [catName, setCatName] = useState("");
+  const [catRating, setCatRating] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const catImages = [
     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg",
@@ -52,6 +58,19 @@ const Index = () => {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleRating = (rating) => {
+    setCatRating(rating);
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 3000);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert(`Thank you for rating ${catName}! You gave it ${catRating} stars.`);
+    setCatName("");
+    setCatRating(0);
   };
 
   return (
@@ -123,9 +142,10 @@ const Index = () => {
           </Carousel>
           
           <Tabs defaultValue="facts" className="mb-12">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
               <TabsTrigger value="facts" className="text-lg">Feline Facts</TabsTrigger>
               <TabsTrigger value="breeds" className="text-lg">Cat Breeds</TabsTrigger>
+              <TabsTrigger value="rate" className="text-lg">Rate a Cat</TabsTrigger>
             </TabsList>
             <TabsContent value="facts">
               <Card className="bg-white/80 backdrop-blur-md">
@@ -178,21 +198,57 @@ const Index = () => {
                           <Badge variant="secondary" className="text-sm">Origin: {breed.origin}</Badge>
                         </div>
                         <p className="text-pink-700 text-lg mb-2">{breed.personality}</p>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                Fun Fact
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{breed.funFact}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline">Fun Fact</Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-[425px]">
+                            <DialogHeader>
+                              <DialogTitle>{breed.name} Fun Fact</DialogTitle>
+                              <DialogDescription>
+                                {breed.funFact}
+                              </DialogDescription>
+                            </DialogHeader>
+                          </DialogContent>
+                        </Dialog>
                       </motion.li>
                     ))}
                   </ul>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="rate">
+              <Card className="bg-white/80 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-2xl text-green-800">
+                    <Star className="mr-2" />Rate a Cat
+                  </CardTitle>
+                  <CardDescription className="text-lg">Share your thoughts on your favorite feline friend</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="catName">Cat's Name</Label>
+                      <Input id="catName" value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Enter cat's name" />
+                    </div>
+                    <div>
+                      <Label>Rating</Label>
+                      <div className="flex space-x-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Button
+                            key={star}
+                            type="button"
+                            variant={catRating >= star ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleRating(star)}
+                          >
+                            <Star className={`h-4 w-4 ${catRating >= star ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`} />
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <Button type="submit">Submit Rating</Button>
+                  </form>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -213,6 +269,31 @@ const Index = () => {
         className="fixed bottom-0 left-0 right-0 h-2 bg-purple-300"
         style={{ scaleX: scrollYProgress }}
       />
+
+      {showConfetti && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-yellow-400 rounded-full"
+              initial={{ 
+                top: "100%",
+                left: `${Math.random() * 100}%`,
+                scale: 0,
+              }}
+              animate={{ 
+                top: `${Math.random() * 100}%`,
+                scale: [0, 1, 0],
+              }}
+              transition={{
+                duration: 2,
+                delay: Math.random() * 0.2,
+                repeat: Infinity,
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
